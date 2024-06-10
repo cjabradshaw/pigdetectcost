@@ -173,7 +173,6 @@ dogs.max.pr
 dogs.pr.mat.st <- dogs.pr.mat/dogs.max.pr
 colnames(dogs.pr.mat.st) <- costs.pdogteam.pmo/dogs.max.pr
 
-setwd("/Users/brad0317/Documents/Papers/Invasive species/Pigs/KI pig detection/out")
 write.table(dogs.pr.mat.st, "dogscostppigpr.csv", sep=",", row.names = T, col.names = T)
 
 
@@ -203,7 +202,6 @@ heli.max.pr
 heli.pr.mat.st <- heli.pr.mat/heli.max.pr
 colnames(heli.pr.mat.st) <- costs.heli.pmo/heli.max.pr
 
-setwd("/Users/brad0317/Documents/Papers/Invasive species/Pigs/KI pig detection/out")
 write.table(heli.pr.mat.st, "helicostppigpr.csv", sep=",", row.names = T, col.names = T)
 
 # cameras
@@ -236,7 +234,6 @@ cams.max.pr
 cams.pr.mat.st <- cams.pr.mat/cams.max.pr
 colnames(cams.pr.mat.st) <- costs.cam.disc.pmo/cams.max.pr
 
-setwd("/Users/brad0317/Documents/Papers/Invasive species/Pigs/KI pig detection/out")
 write.table(cams.pr.mat.st, "camscostppigpr.csv", sep=",", row.names = T, col.names = T)
 
 
@@ -266,7 +263,6 @@ edna.max.pr
 edna.pr.mat.st <- edna.pr.mat/edna.max.pr
 colnames(edna.pr.mat.st) <- costs.edna.pmo/edna.max.pr
 
-setwd("/Users/brad0317/Documents/Papers/Invasive species/Pigs/KI pig detection/out")
 write.table(edna.pr.mat.st, "ednacostppigpr.csv", sep=",", row.names = T, col.names = T)
 
 # ground surveys
@@ -296,7 +292,6 @@ survey.max.pr
 survey.pr.mat.st <- survey.pr.mat/survey.max.pr
 colnames(survey.pr.mat.st) <- costs.pp.pmo/survey.max.pr
 
-setwd("/Users/brad0317/Documents/Papers/Invasive species/Pigs/KI pig detection/out")
 write.table(survey.pr.mat.st, "surveycostppigpr.csv", sep=",", row.names = T, col.names = T)
 
 
@@ -477,270 +472,9 @@ edna.pr.mat.mn.st <- edna.pr.mat.mn/max(edna.pr.mat.mn)
 costs.edna.pmo.st <- costs.edna.pmo/max(edna.pr.mat.mn)
 colnames(edna.pr.mat.mn.st) <- costs.edna.pmo.st
 
-setwd("/Users/brad0317/Documents/Papers/Invasive species/Pigs/KI pig detection/out")
 write.table(dogs.pr.mat.mn.st, "dogscostppigprstoch.csv", sep=",", row.names = T, col.names = T)
 write.table(heli.pr.mat.mn.st, "helicostppigprstoch.csv", sep=",", row.names = T, col.names = T)
 write.table(cams.pr.mat.mn.st, "camscostppigprstoch.csv", sep=",", row.names = T, col.names = T)
 write.table(edna.pr.mat.mn.st, "ednacostppigprstoch.csv", sep=",", row.names = T, col.names = T)
 
 
-
-## create coverage grid to estimate area visited per hour and per day with average daily movements
-siter <- 100
-visited.km2.ph.vec <- rep(NA, siter)
-for (s in 1:siter) {
-  mat.dim <- 10000 # metres x 10 (to facilitate processing)
-  base.mat <- matrix(data=0, ncol=mat.dim, nrow=mat.dim)
-  st.r <- round(mat.dim/2, 0)
-  st.c <- round(mat.dim/2, 0)
-  
-  n.time.steps <- 24*30 # hours (1 month)
-  itdiv <- n.time.steps/10
-  Moore <- seq(1,8,1)
-  Moore.comp <- c("NW", "N", "NE", "E", "SE", "S", "SW", "W")
-  Moore.dr <- c(-1,-1,-1,0,1,1,1,0)
-  Moore.dc <- c(-1,0,1,1,1,0,-1,-1)
-  Moore.dir <- data.frame("Moore"=Moore, "dir"=Moore.comp, "dr"=Moore.dr, "dc"=Moore.dc)
-  run.mat <- base.mat
-  run.mat[st.r,st.c] <- 1
-  curr.r <- dest.r <- st.r
-  curr.c <- dest.c <- st.c
-  
-  for (t in 1:n.time.steps) {
-    
-    # set to current cell
-    curr.r <- dest.r
-    curr.c <- dest.c
-    
-    # choose Moore-neighbourhood direction (NW = 1 ... W = 8)
-    direct <- Moore.dir[sample(Moore,1, replace=F),]
-    
-    # sample distance moved/hr
-    dist.mn <- runif(1, min=dist.avg.phr.lo, max=dist.avg.phr.up)
-    dist.sd <- runif(1, min=dist.sd.phr.lo, max=dist.sd.phr.up)
-    dist.it <- exp(rtruncnorm(1, a=0, b=Inf, log(dist.mn), log(dist.sd))) # in km
-    
-    # number of sq m cells visited in this time step
-    dist.m.it <- round(dist.it*1000, 0)
-    
-    # Euclidian number of cells visited in this time step
-    if (direct$dir == "N" | direct$dir == "E" | direct$dir == "S" | direct$dir == "W") {
-      cells.it <- dist.m.it
-    }
-    if (direct$dir == "NW" | direct$dir == "NE" | direct$dir == "SE" | direct$dir == "SW") {
-      cells.it <- round(sqrt(dist.m.it^2 - (dist.m.it/2)^2), 0)
-    }
-    
-    # path & destination cells visited
-    if (direct$dir == "N" | direct$dir == "E" | direct$dir == "S" | direct$dir == "W") {
-      mov.row <- direct$dr * cells.it
-      mov.col <- direct$dc * cells.it
-    }
-    if (direct$dir == "NW" | direct$dir == "NE" | direct$dir == "SE" | direct$dir == "SW") {
-      drc <- sqrt(cells.it^2 - (cells.it/2)^2)
-      mov.row <- round(direct$dr * drc, 0)
-      mov.col <- round(direct$dc * drc, 0)
-    }
-    
-    # destination cell
-    dest.r <- curr.r + mov.row
-    dest.c <- curr.c + mov.col
-    
-    # determine if destination cell is beyond matrix boundary
-    # if so, resample new destimation cell
-    dest.r <- ifelse(dest.r > mat.dim, st.r, dest.r)
-    dest.r <- ifelse(dest.r < 1, st.r, dest.r)
-    dest.c <- ifelse(dest.c > mat.dim, st.c, dest.c)
-    dest.c <- ifelse(dest.c < 1, st.c, dest.c)
-    
-    # fill in destination cell with presence
-    run.mat[dest.r, dest.c] <- run.mat[dest.r, dest.c] + 1
-    
-    # fill in pathway with presences
-    if (direct$dir == "N" | direct$dir == "E" | direct$dir == "S" | direct$dir == "W") {
-      spath.r <- curr.r:dest.r
-      if (length(spath.r)==1) {
-        spath.r <- curr.r
-      } # end if
-      spath.c <- curr.c:dest.c
-      if (length(spath.c)==1) {
-        spath.c <- curr.c
-      }
-      straight.vec <- run.mat[spath.r, spath.c]
-      if(length(straight.vec)==1) {
-        straight.vec <- straight.vec - 1
-      }
-      if(length(straight.vec)>=2) {
-        straight.vec[1] <- straight.vec[1] - 1
-        straight.vec[length(straight.vec)] <- straight.vec[length(straight.vec)] - 1
-      }
-      run.mat[spath.r, spath.c] <- straight.vec + 1
-    } # end if
-    
-    if (direct$dir == "NW" | direct$dir == "NE" | direct$dir == "SE" | direct$dir == "SW") {
-      min.r <- min(c(curr.r, dest.r))
-      max.r <- max(c(curr.r, dest.r))
-      min.c <- min(c(curr.c, dest.c))
-      max.c <- max(c(curr.c, dest.c))
-      
-      if (length(min.r:max.r) > 1 & length(min.c:max.c) > 1) {
-        diag.vec <- diag(run.mat[min.r:max.r, min.c:max.c])
-        diag(run.mat[min.r:max.r, min.c:max.c]) <- diag.vec + 1
-      }
-      if (length(min.r:max.r) == 1 | length(min.c:max.c) == 1) {
-        straight.vec <- run.mat[min.r:max.r, min.c:max.c]
-        run.mat[min.r:max.r, min.c:max.c] <- straight.vec + 1
-      }
-    } # end if
-    
-    #if (t %% itdiv==0) print(t) 
-    
-  } # end t
-  
-  #run.mat[which(run.mat==0)] <- NA
-  
-  # proportion of matrix visited by 1 pig
-  visited.m2 <- length(which(run.mat > 0))
-  visited.km2 <- visited.m2/1e6
-  visited.km2.ph.vec[s] <- visited.km2/n.time.steps
-  
-  print(s)  
-}
-hist(visited.km2.ph.vec, main="", xlab="visited area/hr (km2)")
-visited.km2.ph.mn <- mean(visited.km2.ph.vec, na.rm=T)
-visited.km2.ph.lo <- quantile(visited.km2.ph.vec, probs=0.025, na.rm=T)
-visited.km2.ph.up <- quantile(visited.km2.ph.vec, probs=0.975, na.rm=T)
-abline(v=visited.km2.ph.mn, lty=1, col="red", lwd=3)
-abline(v=visited.km2.ph.lo, lty=2, col="red", lwd=3)
-abline(v=visited.km2.ph.up, lty=2, col="red", lwd=3)
-
-
-
-run.mat.red <- redim_matrix(run.mat, target_height = 1000, target_width = 1000) 
-dim(run.mat)
-dim(run.mat.red)
-run.mat.red[which(run.mat.red==0)] <- NA
-length(which(run.mat.red>0))/dim(run.mat.red)[1]^2
-min.val.red <- min(run.mat.red, na.rm=T)
-max.val.red <- max(run.mat.red, na.rm=T)
-hist(run.mat.red[is.na(run.mat.red)==F])
-
-image(
-  t(run.mat.red), 
-  axes = FALSE,
-  col = colorRampPalette(c("white", "darkorange", "black"))(30), # our colour palette
-  breaks = c(seq(0, 0.1, length.out = 30), max.val.red) # colour-to-value mapping
-)
-box() # adding a box around the heatmap
-
-length(which(run.mat>0))/mat.dim^2
-
-
-## minimum convex polygon
-run.xyz <- melt(run.mat.red)
-names(run.xyz) <- c("x", "y", "z")
-head(run.xyz)
-run.xy <- run.xyz[,1:2]
-head(run.xy)
-xysp <- SpatialPoints(run.xy)
-
-run.mcp.area <- mcp.area(xysp, percent=95, , unin="m", unout="km2")
-run.mcp.area*100
-
-run.kern <- kernelUD(xysp, h="href")
-kernel.area(run.kern, percent=seq(50,95,5), unin="m", unout="km2") * 100
-
-run.clus <- clusthr(xysp)
-as.data.frame(run.clus[[3]])
-hrge.mo.mn
-
-
-
-
-#####################################################3
-# dummy matrix
-dum.dim <- 10
-dum.mat <- matrix(data=0, ncol=dum.dim, nrow=dum.dim)
-
-st.r <- round(dum.dim/2, 0)
-st.c <- round(dum.dim/2, 0)
-
-Moore <- seq(1,8,1)
-Moore.comp <- c("NW", "N", "NE", "E", "SE", "S", "SW", "W")
-Moore.dr <- c(-1,-1,-1,0,1,1,1,0)
-Moore.dc <- c(-1,0,1,1,1,0,-1,-1)
-Moore.dir <- data.frame("Moore"=Moore, "dir"=Moore.comp, "dr"=Moore.dr, "dc"=Moore.dc)
-run.mat <- dum.mat
-run.mat[st.r,st.c] <- 1
-curr.r <- dest.r <- st.r
-curr.c <- dest.c <- st.c
-
-
-curr.r <- dest.r
-curr.c <- dest.c
-
-direct <- Moore.dir[sample(Moore,1, replace=F),]
-dist.m.it <- sample(1:5,1,replace=F)
-cells.it <- round(sqrt(dist.m.it^2 - (dist.m.it/2)^2), 0)
-
-if (direct$dir == "N" | direct$dir == "E" | direct$dir == "S" | direct$dir == "W") {
-  mov.row <- direct$dr * cells.it
-  mov.col <- direct$dc * cells.it
-}
-if (direct$dir == "NW" | direct$dir == "NE" | direct$dir == "SE" | direct$dir == "SW") {
-  drc <- sqrt(cells.it^2 - (cells.it/2)^2)
-  mov.row <- round(direct$dr * drc, 0)
-  mov.col <- round(direct$dc * drc, 0)
-}
-
-dest.r <- curr.r + mov.row
-dest.c <- curr.c + mov.col
-
-dest.r <- ifelse(dest.r > dum.dim, sample(1:dum.dim, 1, replace=F), dest.r)
-dest.r <- ifelse(dest.r < 1, sample(1:dum.dim, 1, replace=F), dest.r)
-dest.c <- ifelse(dest.c > dum.dim, sample(1:dum.dim, 1, replace=F), dest.c)
-dest.c <- ifelse(dest.c < 1, sample(1:dum.dim, 1, replace=F), dest.c)
-
-run.mat[dest.r, dest.c] <- run.mat[dest.r, dest.c] + 1
-
-if (direct$dir == "N" | direct$dir == "E" | direct$dir == "S" | direct$dir == "W") {
-  spath.r <- curr.r:dest.r
-  if (length(spath.r)==1) {
-    spath.r <- curr.r
-  } # end if
-  spath.c <- curr.c:dest.c
-  if (length(spath.c)==1) {
-    spath.c <- curr.c
-  }
-  straight.vec <- run.mat[spath.r, spath.c]
-  if(length(straight.vec)==1) {
-    straight.vec <- straight.vec - 1
-  }
-  if(length(straight.vec)>=2) {
-    straight.vec[1] <- straight.vec[1] - 1
-    straight.vec[length(straight.vec)] <- straight.vec[length(straight.vec)] - 1
-  }
-  run.mat[spath.r, spath.c] <- straight.vec + 1
-} # end if
-
-if (direct$dir == "NW" | direct$dir == "NE" | direct$dir == "SE" | direct$dir == "SW") {
-  min.r <- min(c(curr.r, dest.r))
-  max.r <- max(c(curr.r, dest.r))
-  min.c <- min(c(curr.c, dest.c))
-  max.c <- max(c(curr.c, dest.c))
-  
-  if (length(min.r:max.r) > 1 & length(min.c:max.c) > 1) {
-    diag.vec <- diag(run.mat[min.r:max.r, min.c:max.c])
-    diag(run.mat[min.r:max.r, min.c:max.c]) <- diag.vec + 1
-  }
-  if (length(min.r:max.r) == 1 | length(min.c:max.c) == 1) {
-    straight.vec <- run.mat[min.r:max.r, min.c:max.c]
-    run.mat[min.r:max.r, min.c:max.c] <- straight.vec + 1
-  }
-} # end if
-
-
-#run.mat[which(run.mat==0)] <- NA
-
-plot(run.mat)
-length(which(run.mat>0))/dum.dim^2
