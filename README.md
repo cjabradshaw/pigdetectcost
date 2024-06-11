@@ -3,6 +3,7 @@ Relative costs of different detection models for low feral pig densities on Kang
 <img align="right" src="www/pigtarget.png" width="300" style="margin-top: 20px"></a>
 
 <a href="https://www.flinders.edu.au/people/corey.bradshaw">Corey Bradshaw</a><br>
+Global Ecology<br>
 Flinders University<br>
 May 2024<br>
 
