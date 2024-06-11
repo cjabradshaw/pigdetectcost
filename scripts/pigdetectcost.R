@@ -73,7 +73,7 @@ heli.hrspday <- 3.65
 heli.dayspwk <- 5
 tot.heli.cost.hr <- tot.heli.cost.day/heli.hrspday # Hourly cost 	4055	
 heli.area.cov.phr <- 45*.150 # area covered per hour (square km)	45km/h x 150m
-heli.area.cov.pmo <- heli.area.cov.phr*heli.hrspday*heli.dayspwek*4
+heli.area.cov.pmo <- heli.area.cov.phr*heli.hrspday*heli.dayspwk*4
 heli.detect.pr <- 0.10 # Detection probability if heli flies over pigs 10%
 
 ####################################################
