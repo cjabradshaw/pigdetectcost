@@ -1,4 +1,4 @@
-# Cost of detecting pigs
+# Cost of detecting feral pigs at low densities
 Relative costs of different detection models for low feral pig densities on Kangaroo Island
 <img align="right" src="www/pigtarget.png" width="300" style="margin-top: 20px"></a>
 
