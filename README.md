@@ -1,5 +1,6 @@
 # Cost of detecting pigs
 Relative costs of different detection models for low feral pig densities on Kangaroo Island
+<img align="right" src="www/pigtarget.png" width="400" style="margin-top: 20px"></a>
 
 <a href="https://www.flinders.edu.au/people/corey.bradshaw">Corey Bradshaw</a><br>
 Flinders University<br>
